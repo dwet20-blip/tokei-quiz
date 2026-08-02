@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#60a5fa">
+<title>親子でとけいクイズ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:14px 10px;background:linear-gradient(#fff7dc,#eff8ff);font-family:system-ui,-apple-system,"Yu Gothic",Meiryo,sans-serif;color:#1e293b;-webkit-tap-highlight-color:transparent}
+.app{width:min(100%,560px);margin:auto}.card{background:#fff;border:4px solid #60a5fa;border-radius:28px;box-shadow:0 14px 30px #0f172a24;padding:clamp(16px,5vw,28px)}.hidden{display:none!important}
+h1{margin:0 0 18px;text-align:center;font-size:clamp(1.25rem,5vw,1.55rem)}.box{padding:15px;border:2px solid;border-radius:20px;margin-bottom:16px}.amber{background:#fffbeb;border-color:#fde68a}.blue{background:#eff6ff;border-color:#bfdbfe}
+.label{display:block;text-align:center;font-weight:900;margin-bottom:10px}.radios{display:grid;gap:8px}.radio{display:flex;align-items:center;gap:10px;min-height:52px;padding:10px 12px;background:#fff;border:1px solid #fcd34d;border-radius:14px;font-weight:800}.radio input{width:21px;height:21px;accent-color:#2563eb}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}select{min-width:72px;padding:8px 10px;border:2px solid #93c5fd;border-radius:12px;background:#fff;font-size:1.35rem;font-weight:900}.unit{font-weight:900;color:#475569}.offset{margin-top:12px;padding-top:12px;border-top:1px solid #bfdbfe;text-align:center}
+button{font:inherit;touch-action:manipulation}.primary,.check{width:100%;border:0;border-radius:18px;color:#fff;font-weight:950;cursor:pointer}.primary{padding:17px;background:linear-gradient(90deg,#3b82f6,#2563eb);box-shadow:0 6px 0 #1d4ed8;font-size:1.35rem}.check{padding:16px;background:linear-gradient(90deg,#fb923c,#f97316);box-shadow:0 6px 0 #c2410c;font-size:1.75rem}.primary:active,.check:active{transform:translateY(4px);box-shadow:0 2px 0 #0003}
+.sound{display:block;margin:0 0 10px auto;padding:7px 11px;border:1px solid #cbd5e1;border-radius:999px;background:#fff;font-weight:800}.target{padding:13px;background:#fff7ed;border:2px solid #fed7aa;border-radius:18px;text-align:center}.target small{display:block;font-weight:900;color:#475569}.target p{margin:4px 0 0;white-space:pre-line;color:#ea580c;font-size:clamp(1.7rem,8vw,2.3rem);font-weight:950}
+.message{text-align:center;margin:10px 0;padding:9px;background:#fefce8;border:1px solid #fde68a;border-radius:12px;color:#a16207;font-weight:800}.hint{text-align:center;color:#64748b;font-size:.82rem;font-weight:750;margin:8px 0 2px}
+.clock{display:flex;justify-content:center;touch-action:none}.clock svg{width:min(100%,390px);height:auto;touch-action:none;cursor:grab}.face{fill:#fff;stroke:#475569;stroke-width:8}.hand{stroke-linecap:round;pointer-events:none}.hour{stroke:#ef4444;stroke-width:13}.minute{stroke:#3b82f6;stroke-width:9}.center{fill:#334155}.num{font-size:38px;font-weight:900;fill:#1e293b}.helper{font-size:16px;font-weight:900;fill:#2563eb}.marker{stroke:#94a3b8;stroke-width:2}
+.legend{display:flex;justify-content:center;gap:18px;margin:0 0 10px;font-size:.85rem;font-weight:900}.dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px}.red{background:#ef4444}.bluedot{background:#3b82f6}.actions{display:grid;gap:10px}.back{border:0;background:none;color:#2563eb;text-decoration:underline;font-weight:900;padding:8px}
+.overlay{position:fixed;inset:0;z-index:1000;display:none;pointer-events:none;overflow:hidden}.mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:min(42vw,190px);animation:pop .55s}.particle{position:absolute;left:50%;top:50%;font-size:26px;animation:fly 1.5s forwards}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(0);opacity:0}70%{transform:translate(-50%,-50%) scale(1.18)}to{transform:translate(-50%,-50%) scale(1);opacity:1}}@keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(540deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<button id="sound" class="sound" type="button">🔊 おと：オン</button>
+<div id="overlay" class="overlay"></div>
+<main class="card">
+<section id="parent">
+<h1>👪 おうちの人が もんだいを出してね</h1>
+<div class="box amber"><span class="label">もんだいの タイプ</span><div class="radios">
+<label class="radio"><input type="radio" name="type" value="normal" checked>そのままの じかん</label>
+<label class="radio"><input type="radio" name="type" value="after">○時間あと</label>
+<label class="radio"><input type="radio" name="type" value="before">○時間まえ</label>
+</div></div>
+<div class="box blue"><span class="label">きじゅんの じかん</span><div class="row">
+<select id="hour" aria-label="時"></select><span class="unit">じ</span>
+<select id="minute" aria-label="分"></select><span class="unit">ふん</span>
+</div><div id="offsetArea" class="offset hidden"><b id="offsetLabel">なんじかんあと？</b>
+<select id="offset" aria-label="時間差"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select><span class="unit">じかん</span></div></div>
+<button id="start" class="primary" type="button">こどもに もんだいを だす！</button>
+</section>
+
+<section id="child" class="hidden">
+<h1>⏰ とけいクイズ</h1>
+<div id="message" class="message">ながい はりを うごかしてね！⏰</div>
+<div class="target"><small>この じかんに してね</small><p id="target">12時 00分</p></div>
+<p class="hint">時計を指でなぞると、はりが動きます</p>
+<div class="clock"><svg id="svg" viewBox="0 0 440 440" aria-label="針を動かせる時計">
+<circle cx="220" cy="220" r="185" class="face"/><g id="markers"></g><g id="numbers"></g><g id="helpers"></g>
+<line id="hhand" x1="220" y1="220" x2="220" y2="130" class="hand hour"/>
+<line id="mhand" x1="220" y1="220" x2="220" y2="70" class="hand minute"/>
+<circle cx="220" cy="220" r="11" class="center"/></svg></div>
+<div class="legend"><span><i class="dot red"></i>みじかい はり</span><span><i class="dot bluedot"></i>ながい はり</span></div>
+<div class="actions"><button id="check" class="check" type="button">できた！</button><button id="back" class="back" type="button">もんだいを かえる</button></div>
+</section>
+</main></div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id),S={minutes:720,targetH:12,targetM:0,drag:false,last:0,sound:true,ctx:null,timer:null,locked:false};
+const E={parent:$("parent"),child:$("child"),svg:$("svg"),hour:$("hour"),minute:$("minute"),offset:$("offset"),offsetArea:$("offsetArea"),offsetLabel:$("offsetLabel"),target:$("target"),message:$("message"),hhand:$("hhand"),mhand:$("mhand"),overlay:$("overlay"),sound:$("sound")};
+for(let i=1;i<=12;i++){let o=new Option(i,i);if(i===12)o.selected=true;E.hour.add(o)}
+for(let i=0;i<60;i++)E.minute.add(new Option(String(i).padStart(2,"0"),i));
+draw();loadSound();uiSound();update();
+
+document.querySelectorAll('input[name="type"]').forEach(r=>r.onchange=()=>{let t=type();E.offsetArea.classList.toggle("hidden",t==="normal");E.offsetLabel.textContent=t==="after"?"なんじかんあと？":"なんじかんまえ？"});
+$("start").onclick=start;$("check").onclick=check;$("back").onclick=back;E.sound.onclick=toggleSound;
+E.svg.addEventListener("pointerdown",e=>{if(S.locked)return;e.preventDefault();S.drag=true;S.last=angle(e);try{E.svg.setPointerCapture(e.pointerId)}catch(_){}})
+window.addEventListener("pointermove",e=>{if(!S.drag||S.locked)return;e.preventDefault();let a=angle(e),d=a-S.last;if(d>180)d-=360;if(d<-180)d+=360;S.minutes=norm(S.minutes+d/6);S.last=a;update()},{passive:false});
+window.addEventListener("pointerup",e=>{if(!S.drag)return;S.drag=false;S.minutes=norm(Math.round(S.minutes));update();try{E.svg.releasePointerCapture(e.pointerId)}catch(_){}});
+
+function type(){return document.querySelector('input[name="type"]:checked').value}
+function start(){clearTimeout(S.timer);S.locked=false;let h=+E.hour.value,m=+E.minute.value,o=+E.offset.value,t=type();if(t==="normal"){S.targetH=h;S.targetM=m;E.target.textContent=`${h}時 ${fmt(m)}分`}else if(t==="after"){S.targetH=nh(h+o);S.targetM=m;E.target.textContent=`${h}時${fmt(m)}分 の\n${o}時間あと`}else{S.targetH=nh(h-o);S.targetM=m;E.target.textContent=`${h}時${fmt(m)}分 の\n${o}時間まえ`}
+S.minutes=norm((S.targetH%12)*60+S.targetM+180);E.message.textContent=msg(S.targetM);update();E.parent.classList.add("hidden");E.child.classList.remove("hidden")}
+function back(){clearTimeout(S.timer);S.locked=false;E.child.classList.add("hidden");E.parent.classList.remove("hidden")}
+function check(){if(S.locked)return;S.minutes=norm(Math.round(S.minutes));update();let h=Math.floor(S.minutes/60)%12||12,m=S.minutes%60;if(h===S.targetH&&m===S.targetM){S.locked=true;successSound();show(true);S.timer=setTimeout(back,2300)}else{errorSound();show(false)}}
+function update(){let m=norm(S.minutes)%60;E.mhand.setAttribute("transform",`rotate(${m*6},220,220)`);E.hhand.setAttribute("transform",`rotate(${norm(S.minutes)/60*30},220,220)`)}
+function angle(e){let r=E.svg.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2,a=Math.atan2(y,x)*180/Math.PI+90;return a<0?a+360:a}
+function draw(){for(let i=0;i<60;i++){let a=i*6*Math.PI/180,f=i%5===0,x1=220+175*Math.sin(a),y1=220-175*Math.cos(a),x2=220+(f?155:165)*Math.sin(a),y2=220-(f?155:165)*Math.cos(a),l=document.createElementNS("http://www.w3.org/2000/svg","line");for(const[k,v]of Object.entries({x1,y1,x2,y2,class:"marker"}))l.setAttribute(k,v);if(f)l.setAttribute("stroke-width",4);$("markers").appendChild(l);if(f){let t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("x",220+205*Math.sin(a));t.setAttribute("y",220-205*Math.cos(a)+6);t.setAttribute("text-anchor","middle");t.setAttribute("class","helper");t.textContent=i;$("helpers").appendChild(t)}}for(let i=1;i<=12;i++){let a=i*30*Math.PI/180,t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("x",220+130*Math.sin(a));t.setAttribute("y",220-130*Math.cos(a)+14);t.setAttribute("text-anchor","middle");t.setAttribute("class","num");t.textContent=i;$("numbers").appendChild(t)}}
+function show(ok){E.overlay.innerHTML="";E.overlay.style.display="block";let m=document.createElement("div");m.className="mark";m.textContent=ok?"💮":"もういちど";if(!ok){m.style.fontSize="clamp(2.2rem,12vw,4.5rem)";m.style.padding="18px 25px";m.style.background="#fff";m.style.color="#1d4ed8";m.style.border="4px solid #93c5fd";m.style.borderRadius="24px";m.style.whiteSpace="nowrap"}E.overlay.appendChild(m);if(ok)for(let i=0;i<40;i++){let p=document.createElement("span");p.className="particle";p.textContent=i%3?"✨":"⭐";p.style.setProperty("--x",rnd(-330,330)+"px");p.style.setProperty("--y",rnd(-300,300)+"px");E.overlay.appendChild(p)}setTimeout(()=>{E.overlay.innerHTML="";E.overlay.style.display="none"},ok?1900:1000)}
+function msg(m){if(m===0)return"ぴったりの じかんに してね！🕐";if(m===30)return"はんぶんまで すすむよ！🕧";if(m%5===0)return"青い すうじも ヒントだよ！✨";return"ながい はりを うごかしてね！⏰"}
+function toggleSound(){S.sound=!S.sound;try{localStorage.setItem("tokei_sound",S.sound)}catch(_){}uiSound()}
+function loadSound(){try{let v=localStorage.getItem("tokei_sound");if(v!==null)S.sound=v==="true"}catch(_){}}
+function uiSound(){E.sound.textContent=S.sound?"🔊 おと：オン":"🔇 おと：オフ";E.sound.setAttribute("aria-pressed",S.sound)}
+function ctx(){if(!S.sound)return null;let A=window.AudioContext||window.webkitAudioContext;if(!A)return null;if(!S.ctx)S.ctx=new A;if(S.ctx.state==="suspended")S.ctx.resume().catch(()=>{});return S.ctx}
+function tone(c,f,o,d,t="sine",v=.1){let s=c.currentTime+o,e=s+d,osc=c.createOscillator(),g=c.createGain();osc.type=t;osc.frequency.setValueAtTime(f,s);g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(v,s+.02);g.gain.exponentialRampToValueAtTime(.0001,e);osc.connect(g);g.connect(c.destination);osc.start(s);osc.stop(e+.02)}
+function successSound(){let c=ctx();if(!c)return;tone(c,523,0,.15);tone(c,659,.11,.2);tone(c,784,.23,.3)}
+function errorSound(){let c=ctx();if(!c)return;tone(c,330,0,.16,"triangle",.08);tone(c,262,.14,.24,"triangle",.07)}
+function norm(n){return((n%720)+720)%720}function nh(h){return((h-1)%12+12)%12+1}function fmt(m){return String(m).padStart(2,"0")}function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+</script>
+</body>
+</html>
